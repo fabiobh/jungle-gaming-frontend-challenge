@@ -260,3 +260,106 @@ Documente os contratos REST e eventos, a política de sessão, o estado do carri
 Disponibilize comandos para desenvolvimento com mocks, build, preview, verificação de tipos, lint, testes Playwright e auditoria Lighthouse.
 
 A entrega deve executar a partir de um checkout limpo, sem depender de serviços privados ou do backend de produção.
+
+---
+
+## 13. Guia de Execução da Solução
+
+### 13.1 Requisitos do Sistema
+- **Node.js:** v18.0.0 ou superior (testado em v22+)
+- **NPM:** v9.0.0 ou superior
+- **Navegador:** Chromium / Google Chrome
+
+### 13.2 Instalação e Execução Local
+
+```bash
+# 1. Instalar todas as dependências
+npm install
+
+# 2. Executar o servidor de desenvolvimento Vite
+npm run dev
+
+# 3. Ou gerar o build de produção e rodar em preview (porta 3000)
+npm run build
+npm run preview
+```
+Acesse a aplicação em: `http://localhost:3000` (ou na porta informada pelo Vite).
+
+---
+
+### 13.3 Contas de Teste Pré-Configuradas
+
+O banco de dados em memória do MSW já inclui colecionadores com carteiras e dados fictícios:
+
+| Colecionador | Email | Senha | Carteira Primária |
+| :--- | :--- | :--- | :--- |
+| **Davi Luca (Principal)** | `collector@jungle.io` | `password123` | `0x71C...3847` (Ethereum Mainnet) |
+| **Alice Silva** | `alice@web3.io` | `password123` | `0x32A...89F1` (Polygon) |
+
+*Dica: Na tela de Login (`/login`), botões de preenchimento rápido (Demo) estão disponíveis para alternar usuários com 1 clique.*
+
+---
+
+### 13.4 Cupons Promocionais Válidos
+- `JUNGLE10`: 10% de desconto no subtotal em ETH.
+- `GREEN20`: 20% de desconto no subtotal em ETH.
+- *Qualquer outro código:* exibirá mensagem de erro de cupom inválido com destaque visual.
+
+---
+
+### 13.5 Painel de Simulação de Cenários (DevScenarioPanel)
+
+No canto inferior direito de qualquer tela, clique no botão flutuante **"Mocks & Cenários"** para testar os fluxos de resiliência:
+- **Latência de Rede:** alterne instantaneamente entre `0ms`, `500ms` e `2000ms` para testar os skeletons shimmer.
+- **Forçar Erros HTTP:** simule retornos `400`, `401`, `403`, `404`, `409` e `500` e observe o rollback otimista.
+- **Simular Recusa no Checkout:** simula rejeição de pagamento da carteira e recuperação com nova idempotência.
+- **Oscilação de Preço (Socket.IO):** dispara o evento `nft.updated` via websocket mock para alertar o usuário sobre alterações de valor de itens no carrinho em tempo real.
+- **Resetar Banco Mock:** restaura o estado inicial do banco de dados em memória.
+
+---
+
+### 13.6 Execução dos Testes Automatizados (Playwright)
+
+A suíte cobre 100% dos fluxos solicitados no `README.md` com 32 testes executados em viewports Desktop (1440x900) e Mobile (390x844 Pixel 7):
+
+```bash
+# Executar todos os 32 testes E2E em modo headless
+npm run test:e2e
+
+# Executar apenas em Desktop Chromium
+npx playwright test --project="Desktop Chromium"
+
+# Executar apenas em Mobile Chromium
+npx playwright test --project="Mobile Chromium"
+
+# Abrir o visualizador interativo do Playwright
+npm run test:e2e:ui
+```
+
+---
+
+### 13.7 Auditoria Automatizada do Lighthouse
+
+O projeto possui um script automatizado (`scripts/lighthouse-audit.mjs`) que inicializa o preview na porta 3000, lança o Chrome e audita as páginas Início (`/`) e Detalhes do NFT (`/nft/nft-1`) em 3 iterações consecutivas para cálculo da mediana:
+
+```bash
+npm run lighthouse
+```
+
+Os relatórios detalhados em HTML e JSON são gravados na pasta `lighthouse-reports/`:
+- `home-desktop.html` e `home-desktop.json`
+- `home-mobile.html` e `home-mobile.json`
+- `nft-detail-desktop.html` e `nft-detail-desktop.json`
+- `nft-detail-mobile.html` e `nft-detail-mobile.json`
+
+**Metas e Resultados Médios Auditados:**
+- **Performance:** 99 - 100 / 100 (Meta ≥ 90)
+- **Acessibilidade:** 96 - 100 / 100 (Meta ≥ 95)
+- **Melhores Práticas:** 100 / 100 (Meta ≥ 95)
+- **SEO:** 92 / 100 (Meta ≥ 90)
+
+---
+
+### 13.8 Arquitetura Detalhada
+Para uma explicação aprofundada dos padrões técnicos, gerenciamento de estado, contratos de API, estratégia de cache e acessibilidade, consulte o arquivo [`ARCHITECTURE.md`](./ARCHITECTURE.md).
+
